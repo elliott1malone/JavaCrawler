@@ -1,0 +1,49 @@
+import java.util.ArrayList;
+import org.jsoup.Connection;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
+
+public class Crawler {
+
+    public static void main(String[] args) {
+        String url = "https://www.nytimes.com/";
+        crawl(5, url, new ArrayList<>());
+    }
+
+    public static void crawl(int level, String url, ArrayList<String> visited) {
+        if (level <= 5) {
+            Document doc = request(url, visited);
+
+            if (doc != null) {
+                Elements links = doc.select("a[href]");
+
+                for (var link : links) {
+                    String nextLink = link.absUrl("href");
+                    if (!visited.contains(nextLink)) {
+                        crawl(level + 1, nextLink, visited);
+                    }
+                }
+            }
+        }
+    }
+
+    private static Document request(String url, ArrayList<String> v) {
+        try {
+            Connection con = Jsoup.connect(url);
+            Document doc = con.get();
+
+            if (con.response().statusCode() == 200) {
+                System.out.println("Link: " + url);
+                System.out.println(doc.title());
+                v.add(url);
+
+                return doc;
+            }
+            return null;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+}
